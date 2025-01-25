@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace DesafioFundamentos.Models
 {
@@ -19,7 +20,11 @@ namespace DesafioFundamentos.Models
             Console.WriteLine("Digite a placa do veículo para estacionar:");
             
             string placa = Console.ReadLine().ToUpper();
-            veiculos.Add(placa);
+            if (validarPlaca(placa)) {
+                veiculos.Add(placa);
+            } else {
+                Console.WriteLine("Placa inválida! A placa deve estar no formato ABC1234 ou ABC1D23");
+            }
         }
 
         public void RemoverVeiculo()
@@ -27,25 +32,28 @@ namespace DesafioFundamentos.Models
             Console.WriteLine("Digite a placa do veículo para remover:");
 
             string placa = Console.ReadLine().ToUpper();
+            if (validarPlaca(placa)) {
+                // Verifica se o veículo existe
+                if (veiculos.Any(x => x.ToUpper() == placa.ToUpper())) {
+                    Console.WriteLine("Digite a quantidade de horas que o veículo permaneceu estacionado:");
 
-            // Verifica se o veículo existe
-            if (veiculos.Any(x => x.ToUpper() == placa.ToUpper())) {
-                Console.WriteLine("Digite a quantidade de horas que o veículo permaneceu estacionado:");
+                    uint horas = 0;
+                    decimal valorTotal = 0;
 
-                uint horas = 0;
-                decimal valorTotal = 0;
+                    bool sucess = uint.TryParse(Console.ReadLine(), out horas);
+                    if (sucess) {
+                        valorTotal = precoInicial + (precoPorHora * horas);
+                    } else {
+                        throw new Exception("A quantidade de horas informadas é inválida.");
+                    }
 
-                bool sucess = uint.TryParse(Console.ReadLine(), out horas);
-                if (sucess) {
-                    valorTotal = precoInicial + (precoPorHora * horas);
+                    veiculos.Remove(placa);
+                    Console.WriteLine($"O veículo {placa} foi removido e o preço total foi de: R$ {valorTotal}");
                 } else {
-                    throw new Exception("A quantidade de horas informadas é inválida.");
+                    Console.WriteLine("Desculpe, esse veículo não está estacionado aqui. Confira se digitou a placa corretamente.");
                 }
-
-                veiculos.Remove(placa);
-                Console.WriteLine($"O veículo {placa} foi removido e o preço total foi de: R$ {valorTotal}");
             } else {
-                Console.WriteLine("Desculpe, esse veículo não está estacionado aqui. Confira se digitou a placa corretamente.");
+                Console.WriteLine("Placa inválida! A placa deve estar no formato ABC1234 ou ABC1D23");
             }
         }
 
@@ -61,6 +69,15 @@ namespace DesafioFundamentos.Models
             } else {
                 Console.WriteLine("Não há veículos estacionados.");
             }
+        }
+        
+        private bool validarPlaca(string placa)
+        {
+            // O \b é usado para limitar a string, evitando que aceite mais caracteres que o necessário
+            Match searchPlacaAntiga = Regex.Match(placa, @"\b[a-zA-z]{3}[0-9]{4}\b");
+            Match searchPlacaNova = Regex.Match(placa, @"\b[a-zA-z]{3}[0-9]{1}[a-zA-z]{1}[0-9]{2}\b");
+            
+            return searchPlacaAntiga.Success || searchPlacaNova.Success;
         }
     }
 }
